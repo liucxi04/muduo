@@ -6,8 +6,6 @@
 #include "times.h"
 
 #include <iostream>
-#include <chrono>
-#include <iomanip>
 
 Logger &Logger::GetInstance() {
     static Logger logger;

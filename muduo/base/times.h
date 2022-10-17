@@ -8,6 +8,9 @@
 #include <cstdint>
 #include <string>
 
+/**
+ * @brief 时间类
+ */
 class Time {
 public:
     explicit Time(int64_t ms = 0);

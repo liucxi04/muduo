@@ -6,10 +6,12 @@
 
 #include <cstdlib>
 
+#include "epoll_poller.h"
+
 Poller *Poller::NewDefaultPoller(EventLoop *loop) {
     if (::getenv("MUDUO_USE_POOL")) {
         return nullptr;
     } else {
-        return nullptr;
+        return new EpollPoller(loop);
     }
 }
