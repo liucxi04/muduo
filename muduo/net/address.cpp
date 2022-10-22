@@ -26,3 +26,7 @@ uint16_t InetAddress::getPort() const {
 const sockaddr_in *InetAddress::getAddr() const {
     return &m_addr;
 }
+
+void InetAddress::setAddr(const sockaddr_in &addr) {
+    m_addr = addr;
+}

@@ -9,6 +9,9 @@
 #include "current_thread.h"
 #include "semaphore.h"
 
+/// 不能使用 m_threadNum = 0
+std::atomic_int Thread::m_threadNum(0);
+
 Thread::Thread(std::function<void()> func)
         : m_started(false), m_joined(false), m_tid(0), m_func(std::move(func)) {
     ++m_threadNum;

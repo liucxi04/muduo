@@ -13,16 +13,20 @@
  */
 class InetAddress {
 public:
-    InetAddress(std::string ip, uint16_t port);
+    explicit InetAddress(std::string ip = "", uint16_t port = 0);
 
     std::string getIP() const;
 
     uint16_t getPort() const;
 
     const sockaddr_in *getAddr() const;
+
+    void setAddr(const sockaddr_in &addr);
+
 private:
     std::string m_ip;
     uint16_t m_port;
     sockaddr_in m_addr{};
 };
+
 #endif //MUDUO_ADDRESS_H
