@@ -6,16 +6,15 @@
 
 #include <sys/eventfd.h>
 #include <unistd.h>
-#include <fcntl.h>
 
-#include "muduo/base/logger.h"
-#include "muduo/base/current_thread.h"
-#include "muduo/net/poller/poller.h"
-#include "muduo/net/channel.h"
+#include "../base/logger.h"
+#include "poller/poller.h"
+#include "channel.h"
 
+/// 防止一个线程创建多个 EventLoop
 thread_local EventLoop *t_loopInThisThread = nullptr;
 
-// 定义默认的 Poller 超时事件
+// 定义默认的 Poller 超时时间
 const int kPollTimeMS = 10000;
 
 // 创建 wakeup fd，用来唤醒 subReactor 处理新来的连接
@@ -28,8 +27,8 @@ int createEventFd() {
 }
 
 EventLoop::EventLoop()
-        : m_looping(false), m_quit(false), m_callingPendingFunctors(false), m_threadId(currentPid()),
-          m_poller(Poller::NewDefaultPoller(this)), m_wakeupFd(createEventFd()),
+        : m_quit(false), m_callingPendingFunctors(false), m_threadId(currentTid()),
+          m_wakeupFd(createEventFd()), m_poller(Poller::NewDefaultPoller(this)),
           m_wakeupChannel(new Channel(this, m_wakeupFd)) {
     if (t_loopInThisThread) {
         LOG_FATAL("Another EventLoop exits in this thread %d \n", m_threadId);
@@ -37,9 +36,9 @@ EventLoop::EventLoop()
         t_loopInThisThread = this;
     }
 
-    // 设置 wakeup fd
-    m_wakeupChannel->setReadCallback(std::bind(&EventLoop::handleRead, this));
+    // 设置 wakeup fd 的事件类型和发生事件后的回调函数
     m_wakeupChannel->enableReading();
+    m_wakeupChannel->setReadCallback(std::bind(&EventLoop::handleRead, this));
 }
 
 EventLoop::~EventLoop() {
@@ -50,22 +49,32 @@ EventLoop::~EventLoop() {
 }
 
 void EventLoop::loop() {
-    m_looping = true;
     m_quit = false;
-
+    LOG_INFO("EventLoop %p start looping \n", this);
     while (!m_quit) {
         m_activeChannels.clear();
         m_pollRetTime = m_poller->pool(kPollTimeMS, m_activeChannels);
-        for (auto channel : m_activeChannels) {
-            channel->handleEvent(m_pollRetTime);
+        for (auto channel: m_activeChannels) {
+            /**
+             * @details m_poller->pool() 用来监听哪些 channel 发生事件了
+             * 然后发生事件的 channel 依次处理所绑定 fd 上发生的事件（执行对应的回调函数）
+             * 包括多个与客户端直接通信的 fd 和 wakeup fd.
+             */
+            channel->handleEvent();
         }
+        /**
+         * 当前 EventLoop 事件循环需要处理的回调操作
+         * mainLoop 主要执行 accept 逻辑，创建新的客户端连接，然后分发给 subLoop
+         * mainLoop 事先在 subLoop 注册一个回调，subLoop 被唤醒之后，执行被注册的回调
+         */
         doPendingFunctors();
     }
-    m_looping = false;
+    LOG_INFO("EventLoop %p stop looping \n", this);
 }
 
 void EventLoop::quit() {
     m_quit = true;
+    /// 如果在其他线程中调用本 EventLoop 的 quit
     if (!isInLoopThread()) {
         wakeup();
     }
@@ -79,11 +88,19 @@ void EventLoop::handleRead() {
     }
 }
 
+void EventLoop::wakeup() {
+    uint64_t one = 1;
+    ssize_t n = ::write(m_wakeupFd, &one, sizeof(one));
+    if (n != sizeof(one)) {
+        LOG_ERROR("%s error \n", __FUNCTION__);
+    }
+}
+
 void EventLoop::runInLoop(Functor cb) {
     if (isInLoopThread()) {
-        cb();
+        cb();                               // 在当前的 loop 线程中直接执行
     } else {
-        queueInLoop(std::move(cb));
+        queueInLoop(std::move(cb));   // 在非当前线程中执行 cb，就需要唤醒 loop 所在线程，再执行 cb
     }
 }
 
@@ -92,17 +109,14 @@ void EventLoop::queueInLoop(Functor cb) {
         std::unique_lock<std::mutex> lock(m_mutex);
         m_pendingFunctors.push_back(std::move(cb));
     }
-
+    /**
+     * 唤醒执行该 cb 的 loop 所在的线程
+     * 1. 执行 cb 的 loop 所在线程不是当前线程
+     * 2. 执行 cb 的 loop 正在执行上一轮需要执行的 cb, 这时又添加了新的 cb, 若是去掉 m_callingPendingFunctors，
+     *    则新添加的 cb 需要等待 m_poller->pool 再次返回
+     */
     if (!isInLoopThread() || m_callingPendingFunctors) {
         wakeup();
-    }
-}
-
-void EventLoop::wakeup() {
-    uint64_t one = 1;
-    ssize_t n = ::write(m_wakeupFd, &one, sizeof(one));
-    if (n != sizeof(one)) {
-        LOG_ERROR("%s error \n", __FUNCTION__);
     }
 }
 
@@ -119,17 +133,15 @@ bool EventLoop::hasChannel(Channel *channel) {
 }
 
 void EventLoop::doPendingFunctors() {
+    // 保存需要执行的回调函数，避免加锁时间过长
     std::vector<Functor> functors;
     m_callingPendingFunctors = true;
-
     {
         std::unique_lock<std::mutex> lock(m_mutex);
         functors.swap(m_pendingFunctors);
     }
-
-    for (const auto& functor : functors) {
+    for (const auto &functor: functors) {
         functor();
     }
-
     m_callingPendingFunctors = false;
 }
