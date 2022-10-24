@@ -30,3 +30,7 @@ const sockaddr_in *InetAddress::getAddr() const {
 void InetAddress::setAddr(const sockaddr_in &addr) {
     m_addr = addr;
 }
+
+std::string InetAddress::toString() const {
+    return m_ip + ":" + std::to_string(m_port);
+}

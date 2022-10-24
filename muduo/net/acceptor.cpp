@@ -37,6 +37,9 @@ Acceptor::~Acceptor() {
 void Acceptor::listen() {
     m_listening = true;
     m_acceptSocket.listen();                            // 开始监听
+    /**
+     * @note @details 在这里已经将 m_acceptChannel 加入到了他所属的 loop
+     */
     m_acceptChannel.enableReading();
 }
 

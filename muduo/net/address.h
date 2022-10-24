@@ -23,6 +23,8 @@ public:
 
     void setAddr(const sockaddr_in &addr);
 
+    std::string toString() const;
+
 private:
     std::string m_ip;
     uint16_t m_port;
