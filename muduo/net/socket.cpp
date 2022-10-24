@@ -34,14 +34,16 @@ int Socket::accept(InetAddress &peerAddr) {
     socklen_t len = 0;
     memset(&addr, 0 , sizeof(addr));
     int fd = ::accept(m_fd, (sockaddr*) &addr, &len);
-    if (fd > 0) {
+    if (fd >= 0) {
         peerAddr.setAddr(addr);
     }
     return fd;
 }
 
 void Socket::shutdownWrite() {
-    ::shutdown(m_fd, SHUT_WR);
+    if (::shutdown(m_fd, SHUT_WR) < 0) {
+        LOG_ERROR("%s error! \n", __FUNCTION__ );
+    }
 }
 
 void Socket::setTcpNoDelay(bool on) {

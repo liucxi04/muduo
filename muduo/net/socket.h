@@ -5,9 +5,11 @@
 #ifndef MUDUO_SOCKET_H
 #define MUDUO_SOCKET_H
 
+#include "../base/noncopyable.h"
+
 class InetAddress;
 
-class Socket {
+class Socket : NonCopyable {
 public:
     explicit Socket(int fd);
 
@@ -32,7 +34,7 @@ public:
     void keepAlive(bool on);
 
 private:
-    int m_fd;
+    const int m_fd;
 };
 
 

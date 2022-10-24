@@ -7,11 +7,10 @@
 #include "../base/logger.h"
 #include "address.h"
 
-#include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
-int createNonBlocking() {
+static int createNonBlocking() {
     int fd = ::socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
     if (fd < 0) {
         LOG_FATAL("%s error! \n", __FUNCTION__);
@@ -22,11 +21,11 @@ int createNonBlocking() {
 Acceptor::Acceptor(EventLoop *loop, const InetAddress &addr, bool reusePort)
     : m_listening(false)
     , m_loop(loop)
-    , m_acceptSocket(createNonBlocking())
+    , m_acceptSocket(createNonBlocking())               // 创建 socket
     , m_acceptChannel(loop, m_acceptSocket.getFd()) {
     m_acceptSocket.setReuseAddr(true);
     m_acceptSocket.setReusePort(reusePort);
-    m_acceptSocket.bindAddr(addr);
+    m_acceptSocket.bindAddr(addr);                // 绑定 socket
     m_acceptChannel.setReadCallback(std::bind(&Acceptor::handleRead, this));
 }
 
@@ -37,10 +36,13 @@ Acceptor::~Acceptor() {
 
 void Acceptor::listen() {
     m_listening = true;
-    m_acceptSocket.listen();
+    m_acceptSocket.listen();                            // 开始监听
     m_acceptChannel.enableReading();
 }
 
+/**
+ * @note listen fd 有事件发生了, 即有新用户连接到来
+ */
 void Acceptor::handleRead() {
     InetAddress peerAddr;
     int fd = m_acceptSocket.accept(peerAddr);

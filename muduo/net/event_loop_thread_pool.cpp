@@ -4,8 +4,6 @@
 #include "event_loop_thread_loop.h"
 #include "event_loop_thread.h"
 
-#include <memory>
-
 EventLoopThreadPool::EventLoopThreadPool(EventLoop *baseLoop)
     : m_started(false), m_baseLoop(baseLoop), m_threadNum(0), m_next(0) {
 }
@@ -19,6 +17,7 @@ void EventLoopThreadPool::start(const ThreadInitCallback &cb) {
         m_loops.push_back(t->startLoop());
     }
 
+    // 只有一个 mainLoop 的情况
     if (m_threadNum == 0 && cb) {
         cb(m_baseLoop);
     }
