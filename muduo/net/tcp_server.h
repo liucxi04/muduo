@@ -5,6 +5,7 @@
 #ifndef MUDUO_TCP_SERVER_H
 #define MUDUO_TCP_SERVER_H
 
+/// 引入需要的头文件而不是类的前置声明, 简化用户的使用
 #include "event_loop.h"
 #include "acceptor.h"
 #include "address.h"
@@ -17,7 +18,11 @@
 
 class TcpServer : NonCopyable {
 public:
+    /**
+     * @brief 线程初始化回调函数，在新线程创建 EventLoop 之后调用
+     */
     using ThreadInitCallback = std::function<void(EventLoop *)>;
+    using ConnectionMap = std::unordered_map<std::string, TcpConnectionPtr>;
 
     enum Option {
         kNoReusePort,
@@ -60,20 +65,19 @@ private:
     void removeConnectionInLoop(const TcpConnectionPtr &conn);
 
 private:
-    EventLoop *m_loop;
-    InetAddress m_addr;
+    std::atomic_int m_started;                              // tcp server 是否启动
+    EventLoop *m_loop;                                      // baseLoop, mainLoop, 用户定义的 loop
+    InetAddress m_addr;                                     // 主机的 ip 和 port
     std::unique_ptr<Acceptor> m_acceptor;                   // 运行在 mainLoop 里的 acceptor
-    std::shared_ptr<EventLoopThreadPool> m_threadPool;
+    std::shared_ptr<EventLoopThreadPool> m_threadPool;      // 线程池, 包含多个线程, 每个线程里运行一个 EventLoop, one loop pre thread
 
     ConnectionCallback m_connectionCallback;                // 有新连接时的回调
     MessageCallback m_messageCallback;                      // 有读写消息时的回调
     WriteCompleteCallback m_writeCompleteCallback;          // 消息发送完成以后的回调
     ThreadInitCallback m_threadInitCallback;                // 线程创建完成后初始化 loop 的函数
 
-    std::atomic_int m_started;
     int m_nextConnId;
-    using ConnectionMap = std::unordered_map<std::string, TcpConnectionPtr>;
-    ConnectionMap m_connects;
+    ConnectionMap m_connects;                               // 保存所有的连接
 };
 
 #endif //MUDUO_TCP_SERVER_H
