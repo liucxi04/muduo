@@ -7,7 +7,7 @@
 #include <utility>
 #include "../base/logger.h"
 
-EventLoop *checkNotNull(EventLoop *loop) {
+static EventLoop *checkNotNull(EventLoop *loop) {
     if (loop == nullptr) {
         LOG_FATAL("%s error! \n", __FUNCTION__);
     }
@@ -43,6 +43,7 @@ void TcpServer::start() {
 }
 
 void TcpServer::newConnection(int fd, const InetAddress &peerAddr) {
+    EventLoop *ioLoop = m_threadPool->getNextLoop();
 
 }
 

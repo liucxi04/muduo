@@ -9,6 +9,7 @@
 #include <string>
 #include <sys/uio.h>
 #include <cerrno>
+#include <unistd.h>
 
 /**
  * @brief 缓冲器类型定义
@@ -107,6 +108,16 @@ public:
         return n;
     }
 
+    /**
+     * @brief 通过 fd 发送数据
+     */
+    ssize_t writeFd(int fd, int &saveErrno) {
+        ssize_t n = ::write(fd, peek(), readableBytes());
+        if (n < 0) {
+            saveErrno = errno;
+        }
+        return n;
+    }
 private:
     char *begin() { return &*m_buffer.begin(); }
 
