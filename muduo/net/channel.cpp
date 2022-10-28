@@ -18,7 +18,7 @@ Channel::Channel(EventLoop *loop, int fd)
 }
 
 /**
- * TODO 该方法在哪里调用
+ * @details 在 TcpConnection::connectEstablished() 中调用，用于观察该连接是否还存在
  */
 void Channel::tie(const std::shared_ptr<void> &obj) {
     m_tie = obj;
@@ -41,6 +41,7 @@ void Channel::remove() {
 
 /**
  * @brief 如果绑定过观察对象，只有在所监听的对象还存在时，才会处理
+ * 因为 channel 所调用的回调是绑定的 TcpConnection 的成员函数，如果该 TcpConnection 不存在，那么调用一定会出错
  */
 void Channel::handleEvent() {
     if (m_tied) {

@@ -29,9 +29,19 @@ public:
 
     ~TcpConnection();
 
+    /**
+     * @brief 用来发送数据
+     */
     void send(const std::string &buf);
 
+    /**
+     * @brief 关闭当前连接
+     */
     void shutdown();
+
+    bool isConnected() const { return m_state == kConnected; }
+
+    bool isDisConnected() const { return m_state == kDisconnected; }
 
     void setConnectionCallback(const ConnectionCallback &cb) { m_connectionCallback = cb; }
 
@@ -46,8 +56,14 @@ public:
         m_highWaterMark = highWaterMark;
     }
 
+    /**
+     * @brief 连接建立
+     */
     void connectEstablished();
 
+    /**
+     * @brief 连接销毁
+     */
     void connectDestroyed();
 
 private:
@@ -58,6 +74,10 @@ private:
         kDisconnected,
     };
 
+    void setState(StateE state) {
+        m_state = state;
+    }
+
     void handleRead();
 
     void handleWrite();
@@ -66,23 +86,23 @@ private:
 
     void handleError();
 
+    /**
+     * @brief send 函数注册到 EventLoop 内的回调
+     */
     void sendInLoop(const void *message, size_t len);
 
+    /**
+     * @brief shutdown 函数注册到 EventLoop 内的回调
+     */
     void shutdownInLoop();
 
-    void setState(StateE state) {
-        m_state = state;
-    }
-
 private:
-    EventLoop *m_loop;          // subLoop
-    const std::string m_name;
-    std::atomic_int m_state;
-    bool m_reading;
+    EventLoop *m_loop;          // 通过轮询选出的 subLoop
+    const std::string m_name;   // 连接的名字，用在 ConnectionMap 上
+    std::atomic_int m_state;    // 连接的状态，有四个枚举值
 
     std::unique_ptr<Socket> m_socket;
     std::unique_ptr<Channel> m_channel;
-
     const InetAddress m_localAddr;
     const InetAddress m_peerAddr;
 
@@ -93,8 +113,8 @@ private:
     HighWaterMarkCallback m_highWaterMarkCallback;
     size_t m_highWaterMark;
 
-    Buffer m_inputBuffer;
-    Buffer m_outputBuffer;
+    Buffer m_inputBuffer;       // 接收数据的缓冲区
+    Buffer m_outputBuffer;      // 发送数据的缓冲区
 };
 
 #endif //MUDUO_TCP_CONNECTION_H
