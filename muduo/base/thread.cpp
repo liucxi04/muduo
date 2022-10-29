@@ -33,7 +33,7 @@ void Thread::start() {
     sem_init(&sem, false, 0);
     // 开启线程
     m_thread = std::make_shared<std::thread>([&]() {
-        m_tid = currentTid();   //  获取线程的 tid 值
+        m_tid = CurrentThread::tid();   //  获取线程的 tid 值
         sem_post(&sem);
         m_func();               // 新线程执行线程函数
     });

@@ -27,7 +27,7 @@ int createEventFd() {
 }
 
 EventLoop::EventLoop()
-        : m_quit(false), m_callingPendingFunctors(false), m_threadId(currentTid()),
+        : m_quit(false), m_callingPendingFunctors(false), m_threadId(CurrentThread::tid()),
           m_wakeupFd(createEventFd()), m_poller(Poller::NewDefaultPoller(this)),
           m_wakeupChannel(new Channel(this, m_wakeupFd)) {
     if (t_loopInThisThread) {

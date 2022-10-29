@@ -5,18 +5,17 @@
 #ifndef MUDUO_CURRENT_THREAD_H
 #define MUDUO_CURRENT_THREAD_H
 
-#include <sys/syscall.h>
-#include <unistd.h>
+namespace CurrentThread {
+    extern thread_local int t_cachedTid;
 
-thread_local int t_cachedTid = 0;
+    void cachedTid();
 
-/**
- * @brief 获得当前线程的 tid
- */
-inline int currentTid() {
-    if (t_cachedTid == 0) {
-        t_cachedTid = static_cast<int>(::syscall(SYS_gettid));
+    inline int tid() {
+        if (__builtin_expect(t_cachedTid == 0, 0)) {
+            cachedTid();
+        }
+        return t_cachedTid;
     }
-    return t_cachedTid;
 }
+
 #endif //MUDUO_CURRENT_THREAD_H

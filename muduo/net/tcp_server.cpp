@@ -7,6 +7,7 @@
 #include <utility>
 #include <cstring>
 #include "tcp_connection.h"
+#include "event_loop_thread_pool.h"
 #include "../base/logger.h"
 
 static EventLoop *CheckNotNull(EventLoop *loop) {

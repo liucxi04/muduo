@@ -2,17 +2,17 @@
 // Created by liucxi on 2022/10/22.
 //
 
-#ifndef MUDUO_EVENT_LOOP_THREAD_LOOP_H
-#define MUDUO_EVENT_LOOP_THREAD_LOOP_H
+#ifndef MUDUO_EVENT_LOOP_THREAD_POOL_H
+#define MUDUO_EVENT_LOOP_THREAD_POOL_H
 
 #include "../base/noncopyable.h"
+#include "event_loop_thread.h"
 
 #include <functional>
 #include <vector>
 #include <memory>
 
 class EventLoop;
-class EventLoopThread;
 
 /**
  * @brief 事件线程池
@@ -49,4 +49,4 @@ private:
     std::vector<std::unique_ptr<EventLoopThread>> m_threads;        // 线程队列，使用智能指针管理资源
 };
 
-#endif //MUDUO_EVENT_LOOP_THREAD_LOOP_H
+#endif //MUDUO_EVENT_LOOP_THREAD_POOL_H

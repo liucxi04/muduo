@@ -63,7 +63,7 @@ public:
 
     bool hasChannel(Channel *channel);
 
-    bool isInLoopThread() const { return m_threadId == currentTid(); }
+    bool isInLoopThread() const { return m_threadId == CurrentThread::tid(); }
 
 private:
     /**
