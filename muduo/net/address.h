@@ -15,6 +15,8 @@ class InetAddress {
 public:
     explicit InetAddress(std::string ip = "", uint16_t port = 0);
 
+    explicit InetAddress(sockaddr_in addr);
+
     std::string getIP() const;
 
     uint16_t getPort() const;
@@ -27,7 +29,7 @@ public:
 
 private:
     std::string m_ip;
-    uint16_t m_port;
+    uint16_t m_port{};
     sockaddr_in m_addr{};
 };
 

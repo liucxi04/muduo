@@ -15,6 +15,10 @@ InetAddress::InetAddress(std::string ip, uint16_t port)
     m_addr.sin_port = htons(m_port);
 }
 
+InetAddress::InetAddress(sockaddr_in addr) {
+    m_addr = addr;
+}
+
 std::string InetAddress::getIP() const {
     return m_ip;
 }

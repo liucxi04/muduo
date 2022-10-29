@@ -43,6 +43,10 @@ public:
 
     bool isDisConnected() const { return m_state == kDisconnected; }
 
+    const std::string &getName() const { return m_name; }
+
+    EventLoop *getLoop() const { return m_loop; }
+
     void setConnectionCallback(const ConnectionCallback &cb) { m_connectionCallback = cb; }
 
     void setMessageCallback(const MessageCallback &cb) { m_messageCallback = cb; }
