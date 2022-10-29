@@ -11,5 +11,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11")
 aux_source_directory(. SRC_LIST)
 aux_source_directory(./muduo/base BASE_LIST)
 aux_source_directory(./muduo/net NET_LIST)
+aux_source_directory(./muduo/net/poller POLLER_LIST)
 # 编译生成动态库 muduo
-add_library(muduo SHARED ${SRC_LIST} ${BASE_LIST} ${NET_LIST})
+add_library(muduo SHARED ${SRC_LIST} ${BASE_LIST} ${NET_LIST} ${POLLER_LIST})

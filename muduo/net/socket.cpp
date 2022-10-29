@@ -30,10 +30,15 @@ void Socket::listen() {
 }
 
 int Socket::accept(InetAddress &peerAddr) {
+    /**
+     * @note 第一版有错误
+     * 1. accept 参数不核发
+     * 2. 没有设置非阻塞
+     */
     sockaddr_in addr{};
-    socklen_t len = 0;
+    socklen_t len = sizeof addr;                // 1.
     memset(&addr, 0 , sizeof(addr));
-    int fd = ::accept(m_fd, (sockaddr*) &addr, &len);
+    int fd = ::accept4(m_fd, (sockaddr*) &addr, &len, SOCK_NONBLOCK | SOCK_CLOEXEC);    // 2.
     if (fd >= 0) {
         peerAddr.setAddr(addr);
     }

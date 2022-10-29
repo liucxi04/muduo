@@ -15,30 +15,36 @@ cd build &&
 
 cd ..
 
-# 把头文件拷贝到 /usr/include/muduo_ 下， so 库拷贝到 /usr/lib/muduo_ 下
+# 把头文件拷贝到 /usr/include/muduo_ 下， so 库拷贝到 /usr/lib 下
+# 如何将 so 库拷贝到 /usr/lib/muduo_ 下？
 if [ ! -d /usr/include/muduo_ ]; then
   mkdir /usr/include/muduo_
 fi
-
-if [ ! -d /usr/lib/muduo_ ]; then
-  mkdir /usr/lib/muduo_
+if [ ! -d /usr/include/muduo_/base ]; then
+  mkdir /usr/include/muduo_/base
+fi
+if [ ! -d /usr/include/muduo_/net ]; then
+  mkdir /usr/include/muduo_/net
+fi
+if [ ! -d /usr/include/muduo_/net/poller ]; then
+  mkdir /usr/include/muduo_/net/poller
 fi
 
 for header in `ls ./muduo/base/*.h`
 do
-  cp $header /usr/include/muduo_
+  cp $header /usr/include/muduo_/base
 done
 
 for header in `ls ./muduo/net/*.h`
 do
-  cp $header /usr/include/muduo_
+  cp $header /usr/include/muduo_/net
 done
 
 for header in `ls ./muduo/net/poller/*.h`
 do
-  cp $header /usr/include/muduo_
+  cp $header /usr/include/muduo_/net/poller
 done
 
-cp `pwd`/lib/libmuduo.so /usr/lib/muduo_
+cp `pwd`/lib/libmuduo.so /usr/lib
 
 ldconfig

@@ -11,6 +11,8 @@
 #include "address.h"
 #include "callback.h"
 #include "event_loop_thread_pool.h"
+#include "tcp_connection.h"
+#include "buffer.h"
 #include "../base/noncopyable.h"
 
 #include <atomic>
